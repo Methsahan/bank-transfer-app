@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Transaction History</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 35px 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f6fa;
+            color: #263238;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .history-panel {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px #00000015;
+        }
+
+        .history-header {
+            background: #1769e8;
+            color: white;
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .history-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .back-btn {
+            background: white;
+            color: #1769e8;
+            padding: 9px 14px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: #e8f0ff;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 22px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-box {
+            padding: 15px;
+            background: #f5f8fc;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .summary-box p {
+            margin: 0 0 8px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .summary-box h3 {
+            margin: 0;
+            color: #198754;
+            font-size: 21px;
+        }
+
+        .table-wrap {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 750px;
+        }
+
+        th, td {
+            padding: 13px 11px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+        }
+
+        th {
+            background: #292d32;
+            color: white;
+            font-weight: bold;
+        }
+
+        tbody tr:hover {
+            background: #f6f9ff;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #176b35;
+        }
+
+        .failed {
+            background: #f8d7da;
+            color: #a51e2b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 8px;
+            }
+
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .summary {
+                padding: 12px;
+            }
+
+            .table-wrap {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="history-panel">
+
+        <!-- Header -->
+
+        <div class="history-header">
+
+            <h2>
+                Transaction History :
+                <span th:text="${customerName}">Customer</span>
+                (<span th:text="${accountNumber}">100001</span>)
+            </h2>
+
+            <a class="back-btn" th:href="@{/}">
+                Back to Dashboard
+            </a>
+
+        </div>
+
+
+        <!-- Account Summary -->
+
+        <div class="summary">
+
+            <div class="summary-box">
+
+                <p>Current Balance</p>
+
+                <h3>
+                    LKR
+                    <span th:text="${#numbers.formatDecimal(currentBalance, 1, 'COMMA', 2, 'POINT')}">
+                        0.00
+                    </span>
+                </h3>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <p>Total Amount Sent</p>
+
+                <h3>
+                    LKR
+                    <span th:text="${#numbers.formatDecimal(totalAmountSent, 1, 'COMMA', 2, 'POINT')}">
+                        0.00
+                    </span>
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- Transaction Table -->
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>From Account</th>
+                    <th>To Account</th>
+                    <th>Amount (Rs)</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+
+
+                <tbody>
+
+                <tr th:each="transaction : ${transactions}">
+
+                    <td th:text="${transaction.createdAt}">
+                        Date
+                    </td>
+
+                    <td th:text="${transaction.fromAccount}">
+                        From
+                    </td>
+
+                    <td th:text="${transaction.toAccount}">
+                        To
+                    </td>
+
+                    <td th:text="${#numbers.formatDecimal(transaction.amount, 1, 'COMMA', 2, 'POINT')}">
+                        0.00
+                    </td>
+
+                    <td>
+
+                        <span class="status"
+                              th:classappend="${transaction.status.name() == 'SUCCESS'} ? ' success' : ' failed'"
+                              th:text="${transaction.status}">
+                            SUCCESS
+                        </span>
+
+                    </td>
+
+                    <td th:text="${transaction.description}">
+                        Description
+                    </td>
+
+                </tr>
+
+
+                <tr th:if="${#lists.isEmpty(transactions)}">
+
+                    <td colspan="6" class="empty">
+                        No transactions found for this account.
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
